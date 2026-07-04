@@ -11,6 +11,7 @@ Patched version:
 from __future__ import annotations
 
 import os
+import inspect
 
 import streamlit as st
 import streamlit.components.v1 as components
@@ -44,33 +45,73 @@ BID_COUNTRY = bid_get("country_ko", "country", "수원국", default="스리랑�
 BID_TITLE = bid_get("title_ko", "사업명", default="ODA Project")
 
 
+def _load_partner_db_safely():
+    """Cloud-safe loader: works even if Streamlit Cloud has an older pipeline.py."""
+    try:
+        if hasattr(P, "load_partner_db"):
+            return P.load_partner_db(PARTNER_DB_DIR)
+    except Exception:
+        pass
+    return {}
+
+
 @st.cache_data(show_spinner=False)
 def load():
-    return P.load_data(DATA_DIR, partner_db_dir=PARTNER_DB_DIR)
+    try:
+        params = inspect.signature(P.load_data).parameters
+        if "partner_db_dir" in params:
+            return P.load_data(DATA_DIR, partner_db_dir=PARTNER_DB_DIR)
+    except Exception:
+        pass
+
+    # Backward-compatible path for older pipeline.py
+    d = P.load_data(DATA_DIR)
+    if isinstance(d, dict) and "partner_db" not in d:
+        d["partner_db"] = _load_partner_db_safely()
+    return d
 
 
 @st.cache_data(show_spinner=False)
 def compute():
     d = load()
-    partner_db = d.get("partner_db", {})
-    rec, total, bd = P.recommend_consortium(
-        COMPONENTS,
-        d.get("humanitarian"),
-        d.get("nonprofit"),
-        FIELD_PARTNERS,
-        recipient_country=BID_COUNTRY,
-        partner_db=partner_db,
-    )
-    edges = P.co_implementation_edges(d.get("humanitarian"), partner_db=partner_db)
+    partner_db = d.get("partner_db", {}) if isinstance(d, dict) else {}
+
+    try:
+        rec, total, bd = P.recommend_consortium(
+            COMPONENTS,
+            d.get("humanitarian"),
+            d.get("nonprofit"),
+            FIELD_PARTNERS,
+            recipient_country=BID_COUNTRY,
+            partner_db=partner_db,
+        )
+    except TypeError:
+        # Older pipeline.py without Partner Master DB support
+        rec, total, bd = P.recommend_consortium(
+            COMPONENTS,
+            d.get("humanitarian"),
+            d.get("nonprofit"),
+            FIELD_PARTNERS,
+            recipient_country=BID_COUNTRY,
+        )
+
+    try:
+        edges = P.co_implementation_edges(d.get("humanitarian"), partner_db=partner_db)
+    except TypeError:
+        edges = P.co_implementation_edges(d.get("humanitarian"))
+
     sl, sectors, partners = P.iati_country_footprint(d.get("iati"), BID_COUNTRY)
     return d, rec, total, bd, edges, sl, sectors, partners
 
 
 d, rec, total, bd, coedges, sl, sectors, mult_partners = compute()
-partner_db = d.get("partner_db", {})
-partner_db_on = P.partner_db_available(partner_db)
-partner_count = len(partner_db.get("summary", [])) if partner_db_on else 0
-capability_count = len(partner_db.get("capabilities", [])) if partner_db_on else 0
+partner_db = d.get("partner_db", {}) if isinstance(d, dict) else {}
+try:
+    partner_db_on = P.partner_db_available(partner_db)
+except Exception:
+    partner_db_on = bool(partner_db)
+partner_count = len(partner_db.get("summary", [])) if partner_db_on and isinstance(partner_db, dict) else 0
+capability_count = len(partner_db.get("capabilities", [])) if partner_db_on and isinstance(partner_db, dict) else 0
 
 
 def get_key():

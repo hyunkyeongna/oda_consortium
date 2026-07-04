@@ -1,6 +1,6 @@
 """
-ODA 컨소시엄 인텔리전스 — 데모 (KOICA 스리랑카 맹그로브 사업)
-실행:  streamlit run app.py
+ODA Consortium Intelligence — demo (KOICA Sri Lanka mangrove bid)
+Run:  streamlit run app.py
 """
 import os
 import streamlit as st
@@ -8,10 +8,13 @@ import streamlit.components.v1 as components
 
 import pipeline as P
 import graph_view as GV
+import ui
 from demo_data import DEMO_BID, COMPONENTS, FIELD_PARTNERS
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-st.set_page_config(page_title="ODA 컨소시엄 인텔리전스", layout="wide")
+st.set_page_config(page_title="ODA Consortium Intelligence", layout="wide",
+                   initial_sidebar_state="expanded")
+st.markdown(ui.inject(), unsafe_allow_html=True)
 
 
 @st.cache_data
@@ -24,144 +27,176 @@ def compute():
     d = load()
     rec, total, bd = P.recommend_consortium(COMPONENTS, d["humanitarian"], d["nonprofit"], FIELD_PARTNERS)
     edges = P.co_implementation_edges(d["humanitarian"])
-    return d, rec, total, bd, edges
+    sl, sectors, partners = P.iati_country_footprint(d["iati"], DEMO_BID["country_ko"])
+    return d, rec, total, bd, edges, sl, sectors, partners
 
 
-d, rec, total, bd, coedges = compute()
+d, rec, total, bd, coedges, sl, sectors, mult_partners = compute()
 
 
-def get_service_key():
-    """secrets.toml 없으면 예외 → 데모 모드로 안전 처리."""
+def get_key():
     try:
         return st.secrets.get("DATA_GO_KR_SERVICE_KEY", "")
     except Exception:
         return ""
 
 
-service_key = get_service_key()
+key = get_key()
 
-# ---------- 사이드바 ----------
-st.sidebar.title("ODA 컨소시엄 인텔리전스")
-st.sidebar.caption("공고 한 건 → 실현 가능한 컨소까지")
-page = st.sidebar.radio("메뉴", [
-    "개요",
-    "① 공고 분해",
-    "② 국내 파트너 매칭",
-    "③ 현장·수원국 파트너",
-    "④ 파트너 그래프",
-    "⑤ 컨소 추천",
-], label_visibility="collapsed")
-st.sidebar.divider()
-st.sidebar.markdown("**데이터 연결 상태**")
-st.sidebar.write("나라장터/KOICA 조달 API:",
-                 "🟢 연결" if service_key else "⚪ 데모 모드(키 미입력)")
-st.sidebar.write(f"KOICA IATI 사업: {len(d['iati'])}건")
-st.sidebar.write(f"전국 비영리단체: {len(d['nonprofit'])}곳")
-st.sidebar.write(f"KOICA 인도적지원 실적: {len(d['humanitarian'])}건")
+# ---------------- Sidebar ----------------
+with st.sidebar:
+    st.markdown('<div class="brand"><span class="mark"></span>ODA Consortium<br>Intelligence</div>',
+                unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow" style="margin-top:14px;">Navigate</div>', unsafe_allow_html=True)
+    page = st.radio("nav", [
+        "Overview",
+        "01 · Bid decomposition",
+        "02 · Domestic matching",
+        "03 · Host-country partners",
+        "04 · Partner graph",
+        "05 · Consortium",
+    ], label_visibility="collapsed")
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow">Data status</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+      <div class="statline"><span>Nara / KOICA API</span><b>{'LIVE' if key else 'DEMO'}</b></div>
+      <div class="statline"><span>IATI projects</span><b>{len(d['iati']):,}</b></div>
+      <div class="statline"><span>NPO registry</span><b>{len(d['nonprofit']):,}</b></div>
+      <div class="statline"><span>Track record</span><b>{len(d['humanitarian'])}</b></div>
+    """, unsafe_allow_html=True)
 
-# ---------- 개요 ----------
-if page == "개요":
-    st.title("ODA 컨소시엄 인텔리전스")
-    st.markdown("인맥·정보 비대칭으로 굴러가던 **ODA 컨소 형성을 데이터로 투명화·가속화**합니다.")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("데모 사업", DEMO_BID["수원국"] + " 맹그로브")
-    c2.metric("사업 예산", f'{DEMO_BID["예산_백만원"]:,}백만원')
-    c3.metric("컨소 종합점수", f"{total}/100")
-    st.info(f'**{DEMO_BID["사업명"]}**  \n{DEMO_BID["사업명_영문"]} · {DEMO_BID["기간"]} · {DEMO_BID["발주"]}')
-    st.subheader("파이프라인")
-    st.markdown(
-        "① 공고 인입·분해 → ② 국내 파트너 매칭 → ③ 현장·수원국 파트너 발견 "
-        "→ ④ 파트너 그래프 → ⑤ 컨소 추천")
-    st.subheader("데이터 소스")
-    st.markdown(
-        "- **실데이터**: KOICA IATI 사업정보, 전국 비영리민간단체(행안부), KOICA 인도적지원 민관협력 실적, 나라장터·KOICA 조달 API(키 입력 시 라이브)\n"
-        "- **목업**: 현지 파트너 카드(집행계획 문서 실명), OECD/WB/ADB(미확보)")
+# ---------------- Overview ----------------
+if page == "Overview":
+    st.markdown(ui.hero(DEMO_BID), unsafe_allow_html=True)
+    st.markdown(ui.kpi_grid([
+        ("Components", len(COMPONENTS), "decomposed from bid"),
+        (f"{DEMO_BID['country']} projects", len(sl), "KOICA footprint (IATI)"),
+        ("Domestic pool", f"{len(d['nonprofit']):,}", "non-profits + track record"),
+        ("Consortium score", f"{total}", "out of 100"),
+    ]), unsafe_allow_html=True)
+    c1, c2 = st.columns([1.3, 1])
+    with c1:
+        st.markdown(ui.section("Pipeline", "Bid to consortium in five steps",
+                    "Each step is data-backed where the data exists, and clearly flagged where it is a mockup."),
+                    unsafe_allow_html=True)
+        st.markdown("""<div class="card">
+          <div class="match"><div class="rank">01</div><div class="body"><div class="org">Bid decomposition</div>
+            <div class="ev">Ingest a Nara-Jangteo / KOICA notice, split into components</div></div></div>
+          <div class="match"><div class="rank">02</div><div class="body"><div class="org">Domestic matching</div>
+            <div class="ev">Rank Korean orgs by track record + registry relevance</div></div></div>
+          <div class="match"><div class="rank">03</div><div class="body"><div class="org">Host-country partners</div>
+            <div class="ev">Surface in-country and multilateral actors (IATI)</div></div></div>
+          <div class="match"><div class="rank">04</div><div class="body"><div class="org">Partner graph</div>
+            <div class="ev">Weave a network incl. real co-delivery history</div></div></div>
+          <div class="match"><div class="rank">05</div><div class="body"><div class="org">Consortium recommendation</div>
+            <div class="ev">Assemble and score a defensible combination</div></div></div>
+        </div>""", unsafe_allow_html=True)
+    with c2:
+        st.markdown(ui.section("Sources", "Data", ""), unsafe_allow_html=True)
+        st.markdown("""<div class="card" style="font-size:13px;line-height:1.9;">
+          <span class="pill pill-real">Live</span> KOICA IATI · National NPO registry · KOICA track record<br>
+          <span class="pill pill-real">Live</span> Nara-Jangteo / KOICA procurement API <i>(key)</i><br>
+          <span class="pill pill-mock">Mock</span> Field-partner cards (from bid document)<br>
+          <span class="pill pill-mock">Mock</span> OECD CRS / WB / ADB <i>(not yet acquired)</i>
+        </div>""", unsafe_allow_html=True)
 
-# ---------- ① 공고 분해 ----------
-elif page == "① 공고 분해":
-    st.header("① 공고 인입 & Component 분해")
-    st.caption("실서비스: 나라장터 API로 공고 인입 → NLP로 component 분해. (데모: 집행계획 PDF 기반)")
-    if service_key:
-        st.success("API 키 감지됨 — 나라장터 라이브 호출 가능")
-    else:
-        st.warning("데모 모드: `.streamlit/secrets.toml`에 DATA_GO_KR_SERVICE_KEY 입력 시 라이브 호출")
-    st.subheader(f'분해 결과 — {len(COMPONENTS)}개 component')
+# ---------------- 01 Bid decomposition ----------------
+elif page.startswith("01"):
+    st.markdown(ui.section("Step 01", "Bid decomposition",
+                "In production a Nara-Jangteo notice is ingested and split by NLP. Demo: parsed from the execution plan."),
+                unsafe_allow_html=True)
+    st.markdown(f'<span class="pill {"pill-real" if key else "pill-mock"}">'
+                f'{"API connected — live ingest available" if key else "Demo mode — add serviceKey for live ingest"}'
+                f'</span>', unsafe_allow_html=True)
+    st.write("")
+    cells = ""
     for c in COMPONENTS:
-        with st.container(border=True):
-            st.markdown(f"**[{c['id']}] {c['name']}**  ·  _{c['sector']}_")
-            st.caption(c["desc"])
-            st.write("매칭 키워드:", ", ".join(c["keywords"][:8]), "…")
+        cells += f"""<div class="pcard">
+          <div style="font-family:'IBM Plex Mono';font-size:11px;color:var(--primary);font-weight:600;">{c['id']}</div>
+          <div class="pname" style="margin-top:2px;">{c['name']}</div>
+          <span class="pill pill-track">{c['sector']}</span>
+          <div class="prole">{c['desc']}</div>
+          <div class="pcomp">{len(c['keywords'])} matching keywords</div>
+        </div>"""
+    st.markdown(f'<div class="pcard-grid">{cells}</div>', unsafe_allow_html=True)
 
-# ---------- ② 국내 파트너 매칭 ----------
-elif page == "② 국내 파트너 매칭":
-    st.header("② 국내 파트너 매칭")
-    st.caption("각 component를 KOICA 수행실적 + 전국 비영리단체 등록정보와 매칭. 점수=키워드 적합 + 실적/등록부처 가중.")
+# ---------------- 02 Domestic matching ----------------
+elif page.startswith("02"):
+    st.markdown(ui.section("Step 02", "Domestic partner matching",
+                "Each component is matched against KOICA track record + the national non-profit registry. "
+                "Score = keyword fit + track-record / registering-ministry weight."),
+                unsafe_allow_html=True)
     tabs = st.tabs([c["name"] for c in COMPONENTS])
     for tab, c in zip(tabs, COMPONENTS):
         with tab:
             m = P.match_domestic(c, d["humanitarian"], d["nonprofit"])
-            if len(m):
-                st.dataframe(m, use_container_width=True, hide_index=True)
-            else:
-                st.info("매칭 후보 없음 — 키워드 확장 필요")
+            st.markdown(ui.match_list(m), unsafe_allow_html=True)
 
-# ---------- ③ 현장·수원국 파트너 ----------
-elif page == "③ 현장·수원국 파트너":
-    st.header("③ 현장·수원국 파트너 발견")
-    sl, sectors, partners = P.iati_country_footprint(d["iati"], DEMO_BID["수원국"])
-    st.subheader(f'KOICA {DEMO_BID["수원국"]} 사업 footprint — {len(sl)}건')
-    st.caption("일반 입찰툴이 못 하는 영역: 수원국에서 실제로 무엇이 돌아가는지 (IATI 실데이터)")
-    st.bar_chart(sectors.head(8))
-    if partners:
-        st.write("사업명에서 추출된 다자기구:", ", ".join(partners.keys()))
-    st.subheader("현지·다자 파트너 (집행계획 문서 기반)")
-    cols = st.columns(3)
-    for i, f in enumerate(FIELD_PARTNERS):
-        with cols[i % 3]:
-            with st.container(border=True):
-                st.markdown(f"**{f['name']}**")
-                st.caption(f"{f['type']} · {f['role']}")
-                st.write("연계 component:", ", ".join(f["components"]))
+# ---------------- 03 Host-country partners ----------------
+elif page.startswith("03"):
+    st.markdown(ui.section("Step 03", "Host-country partner discovery",
+                "What generic bid tools cannot do: show what is actually running in the recipient country (IATI, live)."),
+                unsafe_allow_html=True)
+    st.markdown(ui.kpi_grid([
+        (f"{DEMO_BID['country']} projects", len(sl), "KOICA (IATI)"),
+        ("Sectors active", sectors.shape[0], "distinct fields"),
+        ("Multilaterals found", len(mult_partners), "parsed from titles"),
+        ("Field partners", len(FIELD_PARTNERS), "named in bid doc"),
+    ]), unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow" style="margin-top:10px;">Sector footprint</div>', unsafe_allow_html=True)
+    st.markdown(ui.sector_bars(sectors), unsafe_allow_html=True)
+    if mult_partners:
+        pills = " ".join(f'<span class="pill pill-intl">{k}</span>' for k in mult_partners)
+        st.markdown(f'<div style="margin:2px 0 14px;">Parsed from project titles: {pills}</div>',
+                    unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow">Field and multilateral partners</div>', unsafe_allow_html=True)
+    st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
+    st.markdown(ui.partner_cards(FIELD_PARTNERS), unsafe_allow_html=True)
 
-# ---------- ④ 파트너 그래프 ----------
-elif page == "④ 파트너 그래프":
-    st.header("④ 파트너 생태계 그래프")
-    st.caption("사업 → component → 국내(초록)/현지(주황)/다자(보라). 빨간 굵은선 = 실제 공동수행 이력.")
+# ---------------- 04 Partner graph ----------------
+elif page.startswith("04"):
+    st.markdown(ui.section("Step 04", "Partner ecosystem graph",
+                "Bid to components to domestic (blue) / field (amber) / multilateral (violet). "
+                "Red = real co-delivery history."), unsafe_allow_html=True)
     G = GV.build_graph(DEMO_BID, COMPONENTS, rec, FIELD_PARTNERS, coedges)
-    c1, c2 = st.columns(2)
-    c1.metric("노드", G.number_of_nodes())
-    c2.metric("연결", G.number_of_edges())
+    st.markdown(ui.kpi_grid([
+        ("Nodes", G.number_of_nodes(), "actors + components"),
+        ("Links", G.number_of_edges(), "relationships"),
+        ("Co-delivery", len(coedges), "verified partnerships"),
+    ]), unsafe_allow_html=True)
+    legend = "".join(f'<span><b style="background:{c}"></b>{n}</span>' for n, c in GV.LEGEND)
+    st.markdown(f'<div class="legend">{legend}</div>', unsafe_allow_html=True)
     components.html(GV.render_html(G), height=640)
     if coedges:
-        st.markdown("**실제 공동수행 이력(협업 엣지):**")
-        for a, b, proj in coedges:
-            st.write(f"- {a} ↔ {b}  ·  _{proj}_")
+        st.markdown('<div class="eyebrow">Verified co-delivery</div>', unsafe_allow_html=True)
+        rows = "".join(f'<div class="match"><div class="body"><div class="org">{a} &harr; {b}</div>'
+                       f'<div class="ev">{proj}</div></div></div>' for a, b, proj in coedges)
+        st.markdown(f'<div class="card">{rows}</div>', unsafe_allow_html=True)
 
-# ---------- ⑤ 컨소 추천 ----------
-elif page == "⑤ 컨소 추천":
-    st.header("⑤ 컨소 조합 추천")
-    c1, c2 = st.columns([1, 2])
-    c1.metric("종합 점수", f"{total}/100")
+# ---------------- 05 Consortium ----------------
+elif page.startswith("05"):
+    st.markdown(ui.section("Step 05", "Consortium recommendation",
+                "Component-level combination with a composite score. Weights are demo values."),
+                unsafe_allow_html=True)
+    c1, c2 = st.columns([1, 1.6])
+    with c1:
+        st.markdown(f'<div class="card" style="text-align:center;padding:26px;">'
+                    f'<div class="eyebrow">Composite score</div>'
+                    f'<div class="gauge">{total}<small>/100</small></div></div>', unsafe_allow_html=True)
     with c2:
-        st.write("**점수 구성**")
+        bars = ""
         for k, v in bd.items():
-            st.write(f"- {k}: **{v}**")
-    st.divider()
-    st.subheader("component별 추천 조합")
+            cap = float(k.split("(")[-1].rstrip(")"))
+            w = int(round(v / cap * 100)) if cap else 0
+            bars += f"""<div style="margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;">
+                <span>{k}</span><span class="mono" style="font-weight:600;">{v}</span></div>
+              <div class="bar" style="height:9px;"><i style="width:{w}%"></i></div></div>"""
+        st.markdown(f'<div class="card">{bars}</div>', unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow" style="margin-top:6px;">Recommended combination</div>',
+                unsafe_allow_html=True)
+    st.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
     for r in rec:
-        with st.container(border=True):
-            c = r["component"]
-            lead = r["국내후보"]
-            st.markdown(f"**[{c['id']}] {c['name']}**")
-            colA, colB = st.columns(2)
-            with colA:
-                st.markdown("국내 파트너")
-                if lead:
-                    st.success(f"{lead['기관']}  ·  {lead['출처']}")
-                    st.caption(lead["근거"])
-                else:
-                    st.info("후보 없음")
-            with colB:
-                st.markdown("현지·다자 파트너")
-                st.write(", ".join(r["현지파트너"]) if r["현지파트너"] else "—")
-    st.caption("※ 스코어링 가중치·키워드는 데모 값 — 실서비스에서 실적/PQ자격/공동수급 이력으로 정교화")
+        st.markdown(ui.rec_row(r["component"], r["domestic"], r["field"]), unsafe_allow_html=True)
+    st.caption("Scoring weights and keywords are demo values — production refines with track record, "
+               "PQ eligibility and joint-venture (공동수급) history.")

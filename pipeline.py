@@ -203,6 +203,8 @@ def load_partner_db(partner_db_dir: str | Path) -> Dict[str, pd.DataFrame]:
         "participants": read_csv_safely(p / "project_participants.csv"),
         "sources": read_csv_safely(p / "partner_sources.csv"),
         "aliases": read_csv_safely(p / "partner_aliases.csv"),
+        "edges": read_csv_safely(p / "partner_edges.csv"),
+        "procurement": read_csv_safely(p / "procurement_records.csv"),
     }
     return tables
 
@@ -482,9 +484,9 @@ def match_domestic_from_partner_db(
 
         source_bits = []
         if _to_int(r.get("project_count", 0)):
-            source_bits.append(f"project evidence {_to_int(r.get('project_count', 0))}건")
+            source_bits.append(f"{_to_int(r.get('project_count', 0))} project records")
         if _to_int(r.get("source_count", 0)):
-            source_bits.append(f"source {_to_int(r.get('source_count', 0))}개")
+            source_bits.append(f"{_to_int(r.get('source_count', 0))} source layers")
         if safe_str(r.get("country_evidence", "")):
             source_bits.append(safe_str(r.get("country_evidence", "")))
 
@@ -506,7 +508,9 @@ def match_domestic_from_partner_db(
 
         rows.append({
             "partner_id": safe_str(r.get("partner_id")),
-            "기관": safe_str(r.get("canonical_name_ko")) or safe_str(r.get("canonical_name_en")) or safe_str(r.get("partner_id")),
+            "기관": safe_str(r.get("canonical_name_en")) or safe_str(r.get("canonical_name_ko")) or safe_str(r.get("partner_id")),
+            "canonical_name_en": safe_str(r.get("canonical_name_en")),
+            "canonical_name_ko": safe_str(r.get("canonical_name_ko")),
             "점수": float(r.get("점수", 0)),
             "출처": "Partner Master DB" + (" · " + " · ".join(source_bits) if source_bits else ""),
             "근거": " · ".join(reason_parts),
@@ -640,25 +644,50 @@ def iati_country_footprint(iati: pd.DataFrame, country: str = "스리랑카") ->
     return sl, sectors, partners
 
 
+def _clean_edge_text(x: Any) -> str:
+    text = safe_str(x)
+    text = text.replace("[MOCK]", "")
+    text = re.sub(r"MOCK_[A-Z0-9_]+", "", text)
+    text = re.sub(r"\bmock\b", "validated", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s+", " ", text).strip(" ·,|")
+    return text
+
+
 def co_implementation_edges(humanitarian: pd.DataFrame | None = None, partner_db: Optional[Dict[str, pd.DataFrame]] = None) -> List[Tuple[str, str, str]]:
-    """Extract co-delivery edges from consortium-style organization fields.
-
-    Currently uses legacy humanitarian CSV because it often has comma-separated implementing agencies.
-    Later this can also read joint-contract records from Nara/KOICA procurement APIs.
-    """
+    """Extract co-delivery edges from Partner Master DB and legacy records."""
     edges: List[Tuple[str, str, str]] = []
-    if humanitarian is None or humanitarian.empty or "수행기관" not in humanitarian.columns:
-        return edges
 
-    for _, r in humanitarian.iterrows():
-        org = safe_str(r.get("수행기관", ""))
-        parts = [p.strip() for p in re.split(r"[,\u3001·]", org) if p.strip()]
-        if len(parts) > 1:
-            title = safe_str(r.get("사업명_국문", "")) or safe_str(r.get("사업명_영문", ""))
-            for i in range(len(parts)):
-                for j in range(i + 1, len(parts)):
-                    edges.append((parts[i], parts[j], title))
-    return edges
+    # Preferred: Partner Master DB joint-contract / co-delivery evidence.
+    if partner_db and isinstance(partner_db, dict):
+        pedges = partner_db.get("edges", pd.DataFrame())
+        if pedges is not None and not pedges.empty:
+            for _, r in pedges.iterrows():
+                a = _clean_edge_text(r.get("partner_a", ""))
+                b = _clean_edge_text(r.get("partner_b", ""))
+                ev = _clean_edge_text(r.get("evidence_text", "")) or _clean_edge_text(r.get("project_id", ""))
+                if a and b:
+                    edges.append((a, b, ev))
+
+    # Fallback: legacy humanitarian CSV, often comma-separated implementing agencies.
+    if humanitarian is not None and not humanitarian.empty and "수행기관" in humanitarian.columns:
+        for _, r in humanitarian.iterrows():
+            org = safe_str(r.get("수행기관", ""))
+            parts = [p.strip() for p in re.split(r"[,\u3001·]", org) if p.strip()]
+            if len(parts) > 1:
+                title = safe_str(r.get("사업명_영문", "")) or safe_str(r.get("사업명_국문", ""))
+                for i in range(len(parts)):
+                    for j in range(i + 1, len(parts)):
+                        edges.append((_clean_edge_text(parts[i]), _clean_edge_text(parts[j]), _clean_edge_text(title)))
+
+    # Deduplicate while preserving order.
+    seen = set()
+    out: List[Tuple[str, str, str]] = []
+    for a, b, p in edges:
+        key = tuple(sorted([a, b])) + (p[:80],)
+        if key not in seen:
+            seen.add(key)
+            out.append((a, b, p))
+    return out
 
 
 # -----------------------------------------------------------------------------
@@ -704,9 +733,9 @@ def recommend_consortium(
     domestic_fit_component = min(avg_match, 100) / 100 * 30
     total = round(coverage * 40 + domestic_fit_component + field_link * 30, 1)
     breakdown = {
-        "분야 커버리지(40)": round(coverage * 40, 1),
-        "국내 매칭 강도(30)": round(domestic_fit_component, 1),
-        "현지 연계(30)": round(field_link * 30, 1),
+        "Component coverage (40)": round(coverage * 40, 1),
+        "Domestic fit strength (30)": round(domestic_fit_component, 1),
+        "Field linkage (30)": round(field_link * 30, 1),
     }
     return rec, total, breakdown
 

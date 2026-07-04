@@ -1,11 +1,23 @@
 """
-파트너 생태계 그래프.
-중심: 사업 → component → (국내후보 / 현지·다자 파트너)
-+ 협업이력 엣지(공동수행 실적).
-pyvis로 HTML 생성 → app에서 components.html로 임베드.
+Partner ecosystem graph renderer.
+
+Patched version:
+- Adds LEGEND used by app.py.
+- Accepts both Korean and English recommendation keys.
+- Keeps graph rendering stable when pyvis is unavailable.
 """
+
+from __future__ import annotations
+
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
 import networkx as nx
-from pyvis.network import Network
+
+try:
+    from pyvis.network import Network
+except Exception:  # pragma: no cover
+    Network = None
+
 
 COLORS = {
     "bid": "#1f2d3d",
@@ -15,32 +27,73 @@ COLORS = {
     "multilateral": "#8b5cf6",
 }
 
+LEGEND = [
+    ("Bid", COLORS["bid"]),
+    ("Component", COLORS["component"]),
+    ("Domestic candidate", COLORS["domestic"]),
+    ("Field partner", COLORS["field"]),
+    ("Multilateral", COLORS["multilateral"]),
+    ("Verified co-delivery", "#ef4444"),
+]
 
-def build_graph(bid, components, rec, field_partners, coimpl_edges=None):
+
+def _bid_title(bid: Dict[str, Any]) -> str:
+    return bid.get("사업명") or bid.get("title_ko") or bid.get("name") or "ODA Bid"
+
+
+def _bid_country(bid: Dict[str, Any]) -> str:
+    return bid.get("수원국") or bid.get("country_ko") or bid.get("country") or ""
+
+
+def _bid_budget(bid: Dict[str, Any]) -> str:
+    return str(bid.get("예산_백만원") or bid.get("budget_million_krw") or "")
+
+
+def _domestic_name(domestic: Any) -> str:
+    if not domestic:
+        return ""
+    if isinstance(domestic, dict):
+        return domestic.get("기관") or domestic.get("name") or domestic.get("canonical_name_ko") or ""
+    return str(domestic)
+
+
+def build_graph(
+    bid: Dict[str, Any],
+    components: List[Dict[str, Any]],
+    rec: List[Dict[str, Any]],
+    field_partners: List[Dict[str, Any]],
+    coimpl_edges: Optional[List[Tuple[str, str, str]]] = None,
+) -> nx.Graph:
     G = nx.Graph()
-    G.add_node(bid["사업명"], group="bid", size=34, title=f'{bid["수원국"]} · {bid["예산_백만원"]}백만원')
+    bid_node = _bid_title(bid)
+    title = f"{_bid_country(bid)} · {_bid_budget(bid)}백만원".strip(" ·")
+    G.add_node(bid_node, group="bid", size=34, title=title)
 
     for r in rec:
-        c = r["component"]
-        cid = c["name"]
-        G.add_node(cid, group="component", size=20, title=c["desc"])
-        G.add_edge(bid["사업명"], cid, width=2)
+        c = r.get("component", {})
+        cid = c.get("name", "Component")
+        G.add_node(cid, group="component", size=20, title=c.get("desc", c.get("description", cid)))
+        G.add_edge(bid_node, cid, width=2)
 
-        # 국내 후보
-        if r["국내후보"]:
-            org = r["국내후보"]["기관"]
-            G.add_node(org, group="domestic", size=16,
-                       title=f'국내 · {r["국내후보"]["출처"]} · {r["국내후보"]["근거"]}')
-            G.add_edge(cid, org, width=1 + r["국내후보"]["점수"] / 6)
+        domestic = r.get("국내후보") or r.get("domestic")
+        org = _domestic_name(domestic)
+        if org:
+            score = 0
+            source = ""
+            reason = ""
+            if isinstance(domestic, dict):
+                score = float(domestic.get("점수", 0) or 0)
+                source = domestic.get("출처", "")
+                reason = domestic.get("근거", "")
+            G.add_node(org, group="domestic", size=16, title=f"국내 · {source} · {reason}")
+            G.add_edge(cid, org, width=1 + score / 30)
 
-        # 현지·다자 파트너
         for f in field_partners:
-            if c["id"] in f["components"]:
-                grp = "multilateral" if f["type"] in ("국제기구", "다자개발은행") else "field"
-                G.add_node(f["name"], group=grp, size=15, title=f'{f["type"]} · {f["role"]}')
+            if c.get("id") in f.get("components", []):
+                grp = "multilateral" if f.get("type") in ("국제기구", "다자개발은행") else "field"
+                G.add_node(f["name"], group=grp, size=15, title=f'{f.get("type", "")} · {f.get("role", "")}')
                 G.add_edge(cid, f["name"], width=1, dashes=True)
 
-    # 협업이력(공동수행) 엣지 — 두 노드가 모두 그래프에 있으면 굵게 연결
     if coimpl_edges:
         for a, b, proj in coimpl_edges:
             if G.has_node(a) and G.has_node(b):
@@ -48,17 +101,30 @@ def build_graph(bid, components, rec, field_partners, coimpl_edges=None):
     return G
 
 
-def render_html(G, height="620px"):
-    net = Network(height=height, width="100%", bgcolor="#ffffff",
-                  font_color="#222", notebook=False, directed=False)
+def render_html(G: nx.Graph, height: str = "620px") -> str:
+    if Network is None:
+        return "<div style='padding:16px;border:1px solid #e5e7eb;border-radius:12px;'>pyvis is not installed. Install with <code>pip install pyvis</code>.</div>"
+
+    net = Network(height=height, width="100%", bgcolor="#ffffff", font_color="#222", notebook=False, directed=False)
     net.barnes_hut(gravity=-8000, spring_length=120)
+
     for n, d in G.nodes(data=True):
-        net.add_node(n, label=n if len(n) < 22 else n[:20] + "…",
-                     color=COLORS.get(d.get("group"), "#999"),
-                     size=d.get("size", 14), title=d.get("title", n))
+        label = n if len(str(n)) < 22 else str(n)[:20] + "…"
+        net.add_node(
+            n,
+            label=label,
+            color=COLORS.get(d.get("group"), "#999"),
+            size=d.get("size", 14),
+            title=d.get("title", n),
+        )
     for a, b, d in G.edges(data=True):
-        net.add_edge(a, b, width=d.get("width", 1),
-                     color=d.get("color", "#cbd5e1"),
-                     dashes=d.get("dashes", False), title=d.get("title", ""))
+        net.add_edge(
+            a,
+            b,
+            width=d.get("width", 1),
+            color=d.get("color", "#cbd5e1"),
+            dashes=d.get("dashes", False),
+            title=d.get("title", ""),
+        )
     net.set_options('{"physics":{"stabilization":{"iterations":150}}}')
     return net.generate_html()

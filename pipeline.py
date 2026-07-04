@@ -203,6 +203,8 @@ def load_partner_db(partner_db_dir: str | Path) -> Dict[str, pd.DataFrame]:
         "participants": read_csv_safely(p / "project_participants.csv"),
         "sources": read_csv_safely(p / "partner_sources.csv"),
         "aliases": read_csv_safely(p / "partner_aliases.csv"),
+        "edges": read_csv_safely(p / "partner_edges.csv"),
+        "procurement_records": read_csv_safely(p / "procurement_records.csv"),
     }
     return tables
 

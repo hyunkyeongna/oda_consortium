@@ -2285,3 +2285,36 @@ P_FF8F860617,capacity_building_training,47.4,1,2006,교육,[nonprofit_national] 
 P_FF8F860617,education_youth,47.4,1,2006,교육,[nonprofit_national] 민주화를위한전국교수협의회 사회와 교육의 민주화에 기여 행정안전부 민간협력공동체과
 P_FF93C18D7F,education_youth,47.4,1,2004,교육,"[nonprofit_national] 한국코헴회 ○ 혈우병환자 방문상담 및 교육 프로그램 운영 ○ 지방거주 혈우병환자 진료편의 제공(코헴의 집 운영) ○ 세미나 개최, 국제행사 참석, 하계캠프 운영 등 대내·외 홍보사업 ○ 홈페이지 운영을 통한 혈우병 관련 최신정보 제공 등 보건복지부 질병정책과"
 P_FF93C18D7F,health_wash_humanitarian,47.4,1,2004,보건,"[nonprofit_national] 한국코헴회 ○ 혈우병환자 방문상담 및 교육 프로그램 운영 ○ 지방거주 혈우병환자 진료편의 제공(코헴의 집 운영) ○ 세미나 개최, 국제행사 참석, 하계캠프 운영 등 대내·외 홍보사업 ○ 홈페이지 운영을 통한 혈우병 관련 최신정보 제공 등 보건복지부 질병정책과"
+MOCK_GEOICT,GIS_remote_sensing,96.0,6,2025,"GIS, 드론, drone, 원격탐사, remote sensing, mapping, 매핑, 공간정보, GPS, 위성, 데이터",[MOCK] 개도국 산림공간정보 기반 맹그로브 관리계획 수립 용역 | [MOCK] 드론·GPS·실험 기자재 및 IT 장비 조달 패키지 | [MOCK] 드론 기반 연안생태계 매핑 및 조사 매뉴얼 개발
+MOCK_GEOICT,project_design_policy_research,72.0,4,2025,"정책연구, 전략, 타당성, 예비조사, baseline, 기초선, 컨설팅, 마스터플랜, 관리계획, 매뉴얼",[MOCK] 개도국 산림공간정보 기반 맹그로브 관리계획 수립 용역 | [MOCK] 드론 기반 연안생태계 매핑 및 조사 매뉴얼 개발
+MOCK_GEOICT,procurement_equipment,68.0,2,2025,"기자재, 장비, 조달, equipment, procurement, 실험실, laboratory, 차량, IT 장비, device",[MOCK] 드론·GPS·실험 기자재 및 IT 장비 조달 패키지
+MOCK_MANGROVE_RESTORE,forestry_restoration,98.0,4,2025,"산림, 임업, 조림, 복원, 생태, 맹그로브, mangrove, forest, restoration, biodiversity, 습지",[MOCK] 스리랑카 맹그로브 생태계 복원 사업 예비조사 및 PMC 용역 | [MOCK] 해안습지 및 맹그로브 훼손지 복원 실행관리 용역
+MOCK_MANGROVE_RESTORE,project_design_policy_research,76.0,2,2025,"정책연구, 전략, 타당성, 예비조사, baseline, 기초선, 컨설팅, 마스터플랜, 관리계획, 매뉴얼",[MOCK] 스리랑카 맹그로브 생태계 복원 사업 예비조사 및 PMC 용역
+MOCK_MANGROVE_RESTORE,capacity_building_training,65.0,2,2025,"역량강화, capacity building, 교육, training, 연수, 훈련, 워크숍, 초청연수, 교육프로그램, 인식제고",[MOCK] 해안습지 및 맹그로브 훼손지 복원 실행관리 용역
+MOCK_BLUECARBON,forestry_restoration,88.0,4,2025,"산림, 임업, 조림, 복원, 생태, 맹그로브, mangrove, forest, restoration, biodiversity, 습지",[MOCK] 개도국 산림공간정보 기반 맹그로브 관리계획 수립 용역 | [MOCK] 블루카본 PDD 및 산림탄소 MRV 체계 기초선 조사
+MOCK_BLUECARBON,GIS_remote_sensing,74.0,2,2025,"GIS, 드론, drone, 원격탐사, remote sensing, mapping, 매핑, 공간정보, GPS, 위성, 데이터",[MOCK] 개도국 산림공간정보 기반 맹그로브 관리계획 수립 용역
+MOCK_BLUECARBON,project_design_policy_research,92.0,4,2025,"정책연구, 전략, 타당성, 예비조사, baseline, 기초선, 컨설팅, 마스터플랜, 관리계획, 매뉴얼",[MOCK] 개도국 산림공간정보 기반 맹그로브 관리계획 수립 용역 | [MOCK] 블루카본 PDD 및 산림탄소 MRV 체계 기초선 조사
+MOCK_BLUECARBON,ODA_PMC,70.0,2,2025,"PMC, 사업관리, 성과관리, PDM, M&E, 모니터링, 평가, 산출물 관리",[MOCK] 블루카본 PDD 및 산림탄소 MRV 체계 기초선 조사
+MOCK_FISH_LIVELIHOOD,aquaculture_livelihood,97.0,2,2025,"양식, 수산, 어업, aquaculture, shrimp, 새우, livelihood, 생계, 소득, 커뮤니티, 주민, 가치사슬",[MOCK] 맹그로브 기반 양식 및 주민소득 창출 시범사업 용역
+MOCK_FISH_LIVELIHOOD,capacity_building_training,74.0,2,2025,"역량강화, capacity building, 교육, training, 연수, 훈련, 워크숍, 초청연수, 교육프로그램, 인식제고",[MOCK] 맹그로브 기반 양식 및 주민소득 창출 시범사업 용역
+MOCK_FISH_LIVELIHOOD,project_design_policy_research,65.0,2,2025,"정책연구, 전략, 타당성, 예비조사, baseline, 기초선, 컨설팅, 마스터플랜, 관리계획, 매뉴얼",[MOCK] simulated capability evidence for 해양수산생계혁신원
+MOCK_CAPACITY_CENTER,capacity_building_training,98.0,4,2025,"역량강화, capacity building, 교육, training, 연수, 훈련, 워크숍, 초청연수, 교육프로그램, 인식제고",[MOCK] 환경부 공무원 맹그로브 관리 역량강화 초청연수 및 현지 워크숍 | [MOCK] 수원국 지역주민 생계조사 및 커뮤니티 기반 워크숍 운영
+MOCK_CAPACITY_CENTER,education_youth,82.0,4,2025,"교육, 학생, 청소년, curriculum, 교재, 홍보자료, 인식제고",[MOCK] 환경부 공무원 맹그로브 관리 역량강화 초청연수 및 현지 워크숍 | [MOCK] 수원국 지역주민 생계조사 및 커뮤니티 기반 워크숍 운영
+MOCK_CAPACITY_CENTER,ODA_PMC,84.0,2,2025,"PMC, 사업관리, 성과관리, PDM, M&E, 모니터링, 평가, 산출물 관리",[MOCK] 환경부 공무원 맹그로브 관리 역량강화 초청연수 및 현지 워크숍
+MOCK_CAPACITY_CENTER,project_design_policy_research,62.0,2,2025,"정책연구, 전략, 타당성, 예비조사, baseline, 기초선, 컨설팅, 마스터플랜, 관리계획, 매뉴얼",[MOCK] simulated capability evidence for 글로벌ODA역량센터
+MOCK_INFRA_ARCH,construction_infrastructure,99.0,2,2025,"건축, 건설, 시공, 리모델링, infrastructure, building, construction, 센터, 설계, 시설",[MOCK] 맹그로브 교육센터 신축 및 정보센터 리모델링 설계·감리 용역
+MOCK_INFRA_ARCH,procurement_equipment,70.0,2,2025,"기자재, 장비, 조달, equipment, procurement, 실험실, laboratory, 차량, IT 장비, device",[MOCK] simulated capability evidence for 에코인프라건축사사무소
+MOCK_INFRA_ARCH,ODA_PMC,58.0,2,2025,"PMC, 사업관리, 성과관리, PDM, M&E, 모니터링, 평가, 산출물 관리",[MOCK] 맹그로브 교육센터 신축 및 정보센터 리모델링 설계·감리 용역
+MOCK_EQUIPMENT,procurement_equipment,98.0,2,2025,"기자재, 장비, 조달, equipment, procurement, 실험실, laboratory, 차량, IT 장비, device",[MOCK] 드론·GPS·실험 기자재 및 IT 장비 조달 패키지
+MOCK_EQUIPMENT,GIS_remote_sensing,70.0,2,2025,"GIS, 드론, drone, 원격탐사, remote sensing, mapping, 매핑, 공간정보, GPS, 위성, 데이터",[MOCK] 드론·GPS·실험 기자재 및 IT 장비 조달 패키지
+MOCK_EQUIPMENT,construction_infrastructure,62.0,2,2025,"건축, 건설, 시공, 리모델링, infrastructure, building, construction, 센터, 설계, 시설",[MOCK] simulated capability evidence for ODA장비조달솔루션
+MOCK_MNE,ODA_PMC,97.0,6,2025,"PMC, 사업관리, 성과관리, PDM, M&E, 모니터링, 평가, 산출물 관리",[MOCK] 스리랑카 맹그로브 생태계 복원 사업 예비조사 및 PMC 용역 | [MOCK] 환경부 공무원 맹그로브 관리 역량강화 초청연수 및 현지 워크숍 | [MOCK] 블루카본 PDD 및 산림탄소 MRV 체계 기초선 조사
+MOCK_MNE,project_design_policy_research,94.0,4,2025,"정책연구, 전략, 타당성, 예비조사, baseline, 기초선, 컨설팅, 마스터플랜, 관리계획, 매뉴얼",[MOCK] 스리랑카 맹그로브 생태계 복원 사업 예비조사 및 PMC 용역 | [MOCK] 블루카본 PDD 및 산림탄소 MRV 체계 기초선 조사
+MOCK_MNE,capacity_building_training,72.0,2,2025,"역량강화, capacity building, 교육, training, 연수, 훈련, 워크숍, 초청연수, 교육프로그램, 인식제고",[MOCK] 환경부 공무원 맹그로브 관리 역량강화 초청연수 및 현지 워크숍
+MOCK_COMMUNITY,aquaculture_livelihood,86.0,6,2025,"양식, 수산, 어업, aquaculture, shrimp, 새우, livelihood, 생계, 소득, 커뮤니티, 주민, 가치사슬",[MOCK] 해안습지 및 맹그로브 훼손지 복원 실행관리 용역 | [MOCK] 맹그로브 기반 양식 및 주민소득 창출 시범사업 용역 | [MOCK] 수원국 지역주민 생계조사 및 커뮤니티 기반 워크숍 운영
+MOCK_COMMUNITY,capacity_building_training,88.0,6,2025,"역량강화, capacity building, 교육, training, 연수, 훈련, 워크숍, 초청연수, 교육프로그램, 인식제고",[MOCK] 해안습지 및 맹그로브 훼손지 복원 실행관리 용역 | [MOCK] 맹그로브 기반 양식 및 주민소득 창출 시범사업 용역 | [MOCK] 수원국 지역주민 생계조사 및 커뮤니티 기반 워크숍 운영
+MOCK_COMMUNITY,education_youth,80.0,2,2025,"교육, 학생, 청소년, curriculum, 교재, 홍보자료, 인식제고",[MOCK] 수원국 지역주민 생계조사 및 커뮤니티 기반 워크숍 운영
+MOCK_CLIMATE_ECO,forestry_restoration,78.0,2,2025,"산림, 임업, 조림, 복원, 생태, 맹그로브, mangrove, forest, restoration, biodiversity, 습지",[MOCK] simulated capability evidence for 한국기후생태컨설팅
+MOCK_CLIMATE_ECO,ODA_PMC,82.0,2,2025,"PMC, 사업관리, 성과관리, PDM, M&E, 모니터링, 평가, 산출물 관리",[MOCK] 맹그로브 교육센터 신축 및 정보센터 리모델링 설계·감리 용역
+MOCK_CLIMATE_ECO,project_design_policy_research,86.0,2,2025,"정책연구, 전략, 타당성, 예비조사, baseline, 기초선, 컨설팅, 마스터플랜, 관리계획, 매뉴얼",[MOCK] 맹그로브 교육센터 신축 및 정보센터 리모델링 설계·감리 용역
+MOCK_CLIMATE_ECO,construction_infrastructure,66.0,2,2025,"건축, 건설, 시공, 리모델링, infrastructure, building, construction, 센터, 설계, 시설",[MOCK] 맹그로브 교육센터 신축 및 정보센터 리모델링 설계·감리 용역

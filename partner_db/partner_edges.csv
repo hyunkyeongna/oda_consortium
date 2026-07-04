@@ -1,1 +1,10 @@
 ﻿partner_a,partner_b,relation_type,project_id,evidence_text,weight
+국제개발성과관리연구소,한국맹그로브복원센터,mock_joint_contract,MOCK_PRJ_2024_SRI_MANGROVE_PMC,[MOCK] 2024 simulated procurement evidence: 스리랑카 맹그로브 생태계 복원 사업 예비조사 및 PMC 용역 / suppliers=국제개발성과관리연구소 + 한국맹그로브복원센터,4.0
+그린지오매틱스컨소시엄,블루카본생태연구원,mock_joint_contract,MOCK_PRJ_2024_FOREST_GIS_MASTERPLAN,[MOCK] 2024 simulated procurement evidence: 개도국 산림공간정보 기반 맹그로브 관리계획 수립 용역 / suppliers=그린지오매틱스컨소시엄 + 블루카본생태연구원,4.0
+한국맹그로브복원센터,커뮤니티임팩트랩,mock_joint_contract,MOCK_PRJ_2025_MANGROVE_RESTORATION,[MOCK] 2025 simulated procurement evidence: 해안습지 및 맹그로브 훼손지 복원 실행관리 용역 / suppliers=한국맹그로브복원센터 + 커뮤니티임팩트랩,4.0
+해양수산생계혁신원,커뮤니티임팩트랩,mock_joint_contract,MOCK_PRJ_2025_AQUA_LIVELIHOOD,[MOCK] 2025 simulated procurement evidence: 맹그로브 기반 양식 및 주민소득 창출 시범사업 용역 / suppliers=해양수산생계혁신원 + 커뮤니티임팩트랩,4.0
+글로벌ODA역량센터,국제개발성과관리연구소,mock_joint_contract,MOCK_PRJ_2025_CAPACITY_TRAINING,[MOCK] 2025 simulated procurement evidence: 환경부 공무원 맹그로브 관리 역량강화 초청연수 및 현지 워크숍 / suppliers=글로벌ODA역량센터 + 국제개발성과관리연구소,4.0
+에코인프라건축사사무소,한국기후생태컨설팅,mock_joint_contract,MOCK_PRJ_2025_EDU_CENTER_INFRA,[MOCK] 2025 simulated procurement evidence: 맹그로브 교육센터 신축 및 정보센터 리모델링 설계·감리 용역 / suppliers=에코인프라건축사사무소 + 한국기후생태컨설팅,4.0
+ODA장비조달솔루션,그린지오매틱스컨소시엄,mock_joint_contract,MOCK_PRJ_2025_EQUIPMENT_PROCUREMENT,[MOCK] 2025 simulated procurement evidence: 드론·GPS·실험 기자재 및 IT 장비 조달 패키지 / suppliers=ODA장비조달솔루션 + 그린지오매틱스컨소시엄,4.0
+블루카본생태연구원,국제개발성과관리연구소,mock_joint_contract,MOCK_PRJ_2023_BLUECARBON_MRV,[MOCK] 2023 simulated procurement evidence: 블루카본 PDD 및 산림탄소 MRV 체계 기초선 조사 / suppliers=블루카본생태연구원 + 국제개발성과관리연구소,4.0
+글로벌ODA역량센터,커뮤니티임팩트랩,mock_joint_contract,MOCK_PRJ_2024_COMMUNITY_WORKSHOP,[MOCK] 2024 simulated procurement evidence: 수원국 지역주민 생계조사 및 커뮤니티 기반 워크숍 운영 / suppliers=글로벌ODA역량센터 + 커뮤니티임팩트랩,4.0

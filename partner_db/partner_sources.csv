@@ -1945,3 +1945,13 @@ P_53D670AF9B,koica_iati,KR-GOV-051-2024040103128,WHO,사업명/설명 내 기관
 P_53D670AF9B,koica_iati,KR-GOV-051-2024040102400,WHO,사업명/설명 내 기관 약어,2026-07-04T16:04:50+00:00
 P_53D670AF9B,koica_iati,KR-GOV-051-2024040102401,WHO,사업명/설명 내 기관 약어,2026-07-04T16:04:50+00:00
 P_53D670AF9B,koica_iati,KR-GOV-051-2024040102402,WHO,사업명/설명 내 기관 약어,2026-07-04T16:04:50+00:00
+MOCK_GEOICT,mock_procurement_seed,MOCK_GEOICT_PROFILE,그린지오매틱스컨소시엄,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_MANGROVE_RESTORE,mock_procurement_seed,MOCK_MANGROVE_RESTORE_PROFILE,한국맹그로브복원센터,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_BLUECARBON,mock_procurement_seed,MOCK_BLUECARBON_PROFILE,블루카본생태연구원,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_FISH_LIVELIHOOD,mock_procurement_seed,MOCK_FISH_LIVELIHOOD_PROFILE,해양수산생계혁신원,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_CAPACITY_CENTER,mock_procurement_seed,MOCK_CAPACITY_CENTER_PROFILE,글로벌ODA역량센터,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_INFRA_ARCH,mock_procurement_seed,MOCK_INFRA_ARCH_PROFILE,에코인프라건축사사무소,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_EQUIPMENT,mock_procurement_seed,MOCK_EQUIPMENT_PROFILE,ODA장비조달솔루션,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_MNE,mock_procurement_seed,MOCK_MNE_PROFILE,국제개발성과관리연구소,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_COMMUNITY,mock_procurement_seed,MOCK_COMMUNITY_PROFILE,커뮤니티임팩트랩,mock_profile,2026-07-04T16:20:25+00:00
+MOCK_CLIMATE_ECO,mock_procurement_seed,MOCK_CLIMATE_ECO_PROFILE,한국기후생태컨설팅,mock_profile,2026-07-04T16:20:25+00:00

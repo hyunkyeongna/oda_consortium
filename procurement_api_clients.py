@@ -95,7 +95,12 @@ def parse_response_bytes(data: bytes) -> Any:
 
 
 def extract_items(payload: Any) -> List[Dict[str, Any]]:
-    """Extract item rows from common data.go.kr response shapes."""
+    """Extract real item rows from common data.go.kr response shapes.
+
+    Important: some APIs return a successful envelope with TOTAL_COUNT=0 and
+    ITEMS="". That envelope is not a data row and must not be ingested as a
+    procurement record. This function is intentionally conservative.
+    """
     if payload is None:
         return []
     if isinstance(payload, list):
@@ -103,35 +108,46 @@ def extract_items(payload: Any) -> List[Dict[str, Any]]:
     if not isinstance(payload, dict):
         return []
 
-    # Common shapes:
-    # response.body.items.item
-    # response.body.items
-    # body.items.item
-    # items.item
-    # data.list
-    candidates = [payload]
-    for key in ["response", "body", "items", "item", "data", "list", "result"]:
-        next_candidates = []
-        for c in candidates:
-            if isinstance(c, dict) and key in c:
-                next_candidates.append(c[key])
-        candidates.extend(next_candidates)
+    def rows_from(node: Any) -> List[Dict[str, Any]]:
+        if isinstance(node, list):
+            return [x for x in node if isinstance(x, dict)]
+        if isinstance(node, dict):
+            if "item" in node:
+                return rows_from(node.get("item"))
+            # KOICA JSON often uses upper-case BODY/ITEMS.
+            if "ITEMS" in node:
+                return rows_from(node.get("ITEMS"))
+        return []
 
-    for c in candidates:
-        if isinstance(c, list):
-            return [x for x in c if isinstance(x, dict)]
-        if isinstance(c, dict):
-            if "item" in c:
-                item = c["item"]
-                if isinstance(item, list):
-                    return [x for x in item if isinstance(x, dict)]
-                if isinstance(item, dict):
-                    return [item]
-            # Some APIs return rows directly under items as a dict.
-            if any(k for k in c.keys() if k not in {"header", "body", "items", "totalCount", "numOfRows", "pageNo"}):
-                # Avoid returning the entire response object as one item.
-                if not {"response", "body", "header"}.intersection(c.keys()):
-                    return [c]
+    # Most common JSON/XML envelope shapes.
+    paths = [
+        ["response", "body", "items"],
+        ["body", "items"],
+        ["items"],
+        ["BODY", "ITEMS"],
+        ["data", "list"],
+        ["list"],
+        ["result"],
+    ]
+    for path in paths:
+        node: Any = payload
+        ok = True
+        for key in path:
+            if isinstance(node, dict) and key in node:
+                node = node[key]
+            else:
+                ok = False
+                break
+        if ok:
+            rows = rows_from(node)
+            if rows:
+                return rows
+
+    # Last resort: if the payload itself looks like a single row, accept it only
+    # when it does not look like a response envelope.
+    envelope_keys = {"response", "body", "header", "items", "BODY", "HEADER", "ITEMS", "TOTAL_COUNT", "totalCount"}
+    if not envelope_keys.intersection(payload.keys()):
+        return [payload]
     return []
 
 

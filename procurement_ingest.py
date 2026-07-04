@@ -102,11 +102,12 @@ TITLE_FIELDS = [
     "bidNtceNm", "bidNm", "입찰명", "공고명", "cntrctNm", "계약명", "prdctClsfcNoNm", "품명",
 ]
 COUNTRY_FIELDS = ["수원국", "국가", "country", "rcpntNtnNm", "ntnNm", "recipientCountry"]
-BUYER_FIELDS = ["발주기관", "발주처", "ntceInsttNm", "dminsttNm", "cntrctInsttNm", "orderInsttNm", "계약기관명", "수요기관명"]
+BUYER_FIELDS = ["발주기관", "발주처", "ntceInsttNm", "dminsttNm", "cntrctInsttNm", "orderInsttNm", "insttNm", "계약기관명", "수요기관명"]
 SUPPLIER_FIELDS = [
     "계약상대자", "계약상대자명", "낙찰자", "낙찰자명", "업체명", "수의계약상대자",
     "cntrctEntrpsNm", "cntrctCorpNm", "cntrctCnclsEntrpsNm", "entrpsNm", "bizrnoNm",
     "scsbidCorpNm", "scsbidEntrpsNm", "finalSucsfEntrpsNm", "opengCorpNm", "prtcptCnum", "corpNm",
+    "rltnCorpNm", "corpList", "entrpsList",
 ]
 BID_NO_FIELDS = ["공고번호", "입찰공고번호", "bidNtceNo", "bidPblancNo", "ntceNo"]
 CONTRACT_NO_FIELDS = ["계약번호", "cntrctNo", "untyCntrctNo", "계약참조번호"]
@@ -502,25 +503,41 @@ def fetch_koica_records(args: argparse.Namespace) -> List[Dict[str, Any]]:
     return out
 
 
-def nara_params_for_keyword(args: argparse.Namespace, keyword: str) -> Dict[str, Any]:
-    # Contract service docs include cntrctCnclsBgnDate / cntrctCnclsEndDate.
-    # Bid/award/contract service APIs also commonly use inqryDiv=1/2 and keyword fields.
+def nara_contract_params_for_keyword(args: argparse.Namespace, keyword: str) -> Dict[str, Any]:
+    """Params for CntrctInfoService *PPSSrch operations.
+
+    For contract-search operations, Nara uses inqryBgnDate/inqryEndDate,
+    not cntrctCnclsBgnDate/cntrctCnclsEndDate. Use insttNm with
+    insttDivCd=2 to search by demand institution such as 한국국제협력단.
+    """
     params: Dict[str, Any] = {
-        "inqryDiv": args.inqry_div,
-        "cntrctCnclsBgnDate": args.date_from,
-        "cntrctCnclsEndDate": args.date_to,
-        "opengBgnDate": args.date_from,
-        "opengEndDate": args.date_to,
+        "inqryDiv": args.inqry_div or "1",
+        "inqryBgnDate": args.date_from,
+        "inqryEndDate": args.date_to,
     }
     if keyword:
-        # Try both buyer/demand institution and title/product fields. APIs ignore unknown fields poorly on some endpoints,
-        # so procurement teams can adjust via --nara-param-json when needed.
         params.update({
-            "ntceInsttNm": keyword,
-            "dminsttNm": keyword,
-            "cntrctNm": keyword,
-            "prdctClsfcNoNm": keyword,
+            "insttDivCd": args.instt_div_cd,
+            "insttNm": keyword,
         })
+    if args.nara_param_json:
+        params.update(json.loads(args.nara_param_json))
+    return {k: v for k, v in params.items() if safe_str(v)}
+
+
+def nara_award_params(args: argparse.Namespace) -> Dict[str, Any]:
+    """Params for ScsbidInfoService *PPSSrch operations.
+
+    Award-search operations mainly support date / bid-notice-number search.
+    Institution keyword filtering is therefore unreliable at request level.
+    """
+    bgn = args.date_from + "0000" if args.date_from and len(args.date_from) == 8 else args.date_from
+    end = args.date_to + "2359" if args.date_to and len(args.date_to) == 8 else args.date_to
+    params: Dict[str, Any] = {
+        "inqryDiv": args.inqry_div or "1",
+        "inqryBgnDt": bgn,
+        "inqryEndDt": end,
+    }
     if args.nara_param_json:
         params.update(json.loads(args.nara_param_json))
     return {k: v for k, v in params.items() if safe_str(v)}
@@ -541,7 +558,7 @@ def fetch_nara_records(args: argparse.Namespace) -> List[Dict[str, Any]]:
             if op:
                 for kw in keywords:
                     try:
-                        rows = contract_client.fetch_all_pages(op, params=nara_params_for_keyword(args, kw), max_pages=args.max_pages, page_size=args.page_size)
+                        rows = contract_client.fetch_all_pages(op, params=nara_contract_params_for_keyword(args, kw), max_pages=args.max_pages, page_size=args.page_size)
                         for r in rows:
                             records.append(normalize_procurement_record(r, "nara_contract_api", f"nara_contract_{work_type}"))
                         logging.info("Nara contract %s %s: %s rows", work_type, kw, len(rows))
@@ -552,7 +569,7 @@ def fetch_nara_records(args: argparse.Namespace) -> List[Dict[str, Any]]:
             if op:
                 for kw in keywords:
                     try:
-                        rows = award_client.fetch_all_pages(op, params=nara_params_for_keyword(args, kw), max_pages=args.max_pages, page_size=args.page_size)
+                        rows = award_client.fetch_all_pages(op, params=nara_award_params(args), max_pages=args.max_pages, page_size=args.page_size)
                         for r in rows:
                             records.append(normalize_procurement_record(r, "nara_award_api", f"nara_award_{work_type}"))
                         logging.info("Nara award %s %s: %s rows", work_type, kw, len(rows))
@@ -586,11 +603,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--keyword", action="append", default=[], help="Nara search keyword; can be repeated")
     p.add_argument("--date-from", default="", help="YYYYMMDD")
     p.add_argument("--date-to", default="", help="YYYYMMDD")
-    p.add_argument("--inqry-div", default="1", help="Nara inquiry division. Common values: 1/2 depending operation")
+    p.add_argument("--inqry-div", default="1", help="Nara inquiry division. For contract PPSSrch, 1 means contract date search.")
+    p.add_argument("--instt-div-cd", default="2", help="Nara institution division for contract PPSSrch. 1=contracting institution, 2=demand institution")
     p.add_argument("--nara-work-type", action="append", choices=["service", "goods", "construction", "foreign"], default=[])
     p.add_argument("--bid-notice-no", action="append", default=[], help="Nara bid notice number for contract-process lookup")
     p.add_argument("--fetch-nara-contracts", action="store_true", default=True)
-    p.add_argument("--fetch-nara-awards", action="store_true", default=True)
+    p.add_argument("--fetch-nara-awards", action="store_true", default=False, help="Also fetch Nara award rows. Off by default because award search has weak institution filtering.")
     p.add_argument("--nara-param-json", default="", help='Extra Nara params as JSON, e.g. {"dminsttNm":"한국국제협력단"}')
     p.add_argument("--koica-base-url", default=os.getenv("KOICA_PROCUREMENT_BASE_URL", ""))
     p.add_argument("--nara-contract-base-url", default=os.getenv("NARA_CONTRACT_BASE_URL", ""))
